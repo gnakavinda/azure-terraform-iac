@@ -21,12 +21,12 @@ vnet_address_space = ["10.0.0.0/16"]
 # --- AKS ---
 aks_cluster_name   = "aks-dev-eastus"
 kubernetes_version = "1.35.5"
-system_node_count  = 1           # Single node is fine for dev
-system_vm_size     = "Standard_B2s"
+system_node_count  = 1 # Single node is fine for dev
+system_vm_size     = "Standard_D2s_v3"
 enable_autoscaling = false
 
 # --- Key Vault ---
-keyvault_name              = "kv-dev-eastus-002"   # Must be globally unique
+keyvault_name              = "kv-dev-1c6fbc4d-001"
 keyvault_sku               = "standard"
 soft_delete_retention_days = 7
 
