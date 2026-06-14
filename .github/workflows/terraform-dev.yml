@@ -1,0 +1,121 @@
+# .github/workflows/terraform-dev.yml
+#
+# CI/CD pipeline for the DEV environment.
+#
+# Triggers:
+#   - Pull Request → runs fmt, validate, plan (posts result as PR comment)
+#   - Push to main → runs apply (deploys to dev)
+#
+# Required GitHub Secrets:
+#   ARM_CLIENT_ID          - Service principal app ID
+#   ARM_CLIENT_SECRET      - Service principal password
+#   ARM_TENANT_ID          - Azure tenant ID
+#   ARM_SUBSCRIPTION_ID_DEV - Dev subscription ID
+#   BACKEND_STORAGE_ACCOUNT_DEV - Dev tfstate storage account name
+
+name: Terraform Dev
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'environments/dev/**'
+      - 'modules/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'environments/dev/**'
+      - 'modules/**'
+
+env:
+  TF_WORKING_DIR: environments/dev
+  ARM_CLIENT_ID:       ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET:   ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID:       ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID_DEV }}
+
+jobs:
+  terraform:
+    name: Terraform Dev
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # Needed to post plan output as PR comment
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      # Step 1 — Check out the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2 — Install Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.6"
+
+      # Step 3 — Check formatting (fails if any .tf file is not formatted)
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true   # Don't block pipeline, just flag it
+
+      # Step 4 — Initialise with backend config from secret
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=rg-tfstate-dev" \
+            -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_DEV }}" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=dev/terraform.tfstate"
+
+      # Step 5 — Validate syntax
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      # Step 6 — Plan (runs on both PR and push to main)
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file="dev.tfvars" -no-color -out=tfplan
+        continue-on-error: true   # Let the comment step run even if plan fails
+
+      # Step 7 — Post plan output as a PR comment (PR only)
+      - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `### Terraform Dev Plan 🚀
+            #### Format: \`${{ steps.fmt.outcome }}\`
+            #### Validate: \`${{ steps.validate.outcome }}\`
+            #### Plan: \`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      # Step 8 — Apply (only on push to main, not on PR)
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve tfplan

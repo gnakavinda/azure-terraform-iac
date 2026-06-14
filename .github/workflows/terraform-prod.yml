@@ -1,0 +1,165 @@
+# .github/workflows/terraform-prod.yml
+#
+# CI/CD pipeline for the PROD environment.
+#
+# Triggers:
+#   - Pull Request targeting prod branch → plan only
+#   - Push to prod branch → apply (deploys to prod)
+#
+# Key differences from dev:
+#   - Targets prod subscription
+#   - Requires manual approval before apply (via GitHub Environment protection)
+#   - Uses prod tfvars and backend
+#
+# Required GitHub Secrets:
+#   ARM_CLIENT_ID               - Service principal app ID
+#   ARM_CLIENT_SECRET           - Service principal password
+#   ARM_TENANT_ID               - Azure tenant ID
+#   ARM_SUBSCRIPTION_ID_PROD    - Prod subscription ID
+#   BACKEND_STORAGE_ACCOUNT_PROD - Prod tfstate storage account name
+#
+# Required GitHub Environment:
+#   Create a "production" environment in repo Settings → Environments
+#   Add required reviewers so apply needs manual approval
+
+name: Terraform Prod
+
+on:
+  push:
+    branches:
+      - prod
+    paths:
+      - 'environments/prod/**'
+      - 'modules/**'
+  pull_request:
+    branches:
+      - prod
+    paths:
+      - 'environments/prod/**'
+      - 'modules/**'
+
+env:
+  TF_WORKING_DIR: environments/prod
+  ARM_CLIENT_ID:       ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET:   ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID:       ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID_PROD }}
+
+jobs:
+  plan:
+    name: Terraform Plan (Prod)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.6"
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=rg-tfstate-prod" \
+            -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_PROD }}" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=prod/terraform.tfstate"
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file="prod.tfvars" -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `### Terraform Prod Plan ⚠️
+            #### Format: \`${{ steps.fmt.outcome }}\`
+            #### Validate: \`${{ steps.validate.outcome }}\`
+            #### Plan: \`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      # Upload plan artifact so the apply job can use it
+      - name: Upload Plan
+        if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-prod
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+
+  apply:
+    name: Terraform Apply (Prod)
+    runs-on: ubuntu-latest
+    needs: plan
+    # Only apply on push to prod branch — not on PRs
+    if: github.ref == 'refs/heads/prod' && github.event_name == 'push'
+    # "production" environment requires manual approval in GitHub Settings
+    environment: production
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.6"
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=rg-tfstate-prod" \
+            -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_PROD }}" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=prod/terraform.tfstate"
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-prod
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
