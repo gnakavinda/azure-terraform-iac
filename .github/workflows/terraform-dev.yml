@@ -83,8 +83,8 @@ jobs:
       # Step 6 — Plan (runs on both PR and push to main)
       - name: Terraform Plan
         id: plan
-        run: terraform plan -var-file="dev.tfvars" -no-color -out=tfplan
-        continue-on-error: true   # Let the comment step run even if plan fails
+        run: terraform plan -var-file="dev.tfvars" -no-color
+        continue-on-error: true
 
       # Step 7 — Post plan output as a PR comment (PR only)
       - name: Post Plan to PR
@@ -118,4 +118,4 @@ jobs:
       # Step 8 — Apply (only on push to main, not on PR)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -var-file="dev.tfvars"
