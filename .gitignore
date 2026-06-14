@@ -1,0 +1,20 @@
+# Terraform local files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Backend config — contains real storage account names
+backend.conf
+
+# tfvars may contain sensitive values
+*.tfvars
+!*.tfvars.example
+
+# Lock file — safe to commit
+!.terraform.lock.hcl
