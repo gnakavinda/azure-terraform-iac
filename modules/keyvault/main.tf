@@ -17,7 +17,7 @@ resource "azurerm_key_vault" "this" {
 
   soft_delete_retention_days = var.soft_delete_retention_days
   purge_protection_enabled   = var.purge_protection_enabled
-  enable_rbac_authorization  = var.enable_rbac_authorization
+  rbac_authorization_enabled = var.enable_rbac_authorization
 
   network_acls {
     default_action = var.network_default_action
