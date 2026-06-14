@@ -13,7 +13,6 @@ override.tf.json
 backend.conf
 
 # tfvars may contain sensitive values
-*.tfvars
 !*.tfvars.example
 
 # Lock file — safe to commit
