@@ -16,7 +16,7 @@ resource_group_name = "rg-prod-eastus"
 
 # --- Networking ---
 vnet_name          = "vnet-prod-eastus"
-vnet_address_space = ["10.1.0.0/16"]  # Separate from dev (10.0.0.0/16) — allows future peering
+vnet_address_space = ["10.1.0.0/16"] # Separate from dev (10.0.0.0/16) — allows future peering
 
 # --- AKS ---
 aks_cluster_name   = "aks-prod-eastus"
@@ -38,7 +38,7 @@ user_min_count        = 2
 user_max_count        = 10
 
 # --- Key Vault ---
-keyvault_name              = "kv-prod-eastus-001"  # Must be globally unique
+keyvault_name              = "kv-prod-1c6fbc4d-001"
 keyvault_sku               = "premium"
 soft_delete_retention_days = 90
 
