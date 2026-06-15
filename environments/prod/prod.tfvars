@@ -32,7 +32,7 @@ system_max_count  = 5
 enable_autoscaling = true
 
 # Separate user node pool for application workloads
-create_user_node_pool = true
+create_user_node_pool = false
 user_vm_size          = "Standard_D4s_v3"
 user_min_count        = 2
 user_max_count        = 10
