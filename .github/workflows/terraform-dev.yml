@@ -19,6 +19,7 @@ on:
   push:
     branches:
       - main
+      - developer
     paths:
       - 'environments/dev/**'
       - 'modules/**'
