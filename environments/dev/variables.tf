@@ -23,10 +23,10 @@ variable "vnet_name" {
   type        = string
 }
 
-variable "aks_cluster_name" {
-  description = "Name of the AKS cluster."
-  type        = string
-}
+# variable "aks_cluster_name" {
+#   description = "Name of the AKS cluster."
+#   type        = string
+# }
 
 variable "keyvault_name" {
   description = "Globally unique name for the Key Vault (3-24 alphanumeric and hyphens)."
@@ -54,35 +54,35 @@ variable "admin_ip_address" {
 
 # --- AKS ---
 
-variable "kubernetes_version" {
-  description = "Kubernetes version for the AKS cluster."
-  type        = string
-  default     = "1.30"
-}
+# variable "kubernetes_version" {
+#   description = "Kubernetes version for the AKS cluster."
+#   type        = string
+#   default     = "1.30"
+# }
 
-variable "system_node_count" {
-  description = "Number of nodes in the system node pool."
-  type        = number
-  default     = 1
-}
+# variable "system_node_count" {
+#   description = "Number of nodes in the system node pool."
+#   type        = number
+#   default     = 1
+# }
 
-variable "system_vm_size" {
-  description = "VM SKU for system pool nodes."
-  type        = string
-  default     = "Standard_B2s"
-}
+# variable "system_vm_size" {
+#   description = "VM SKU for system pool nodes."
+#   type        = string
+#   default     = "Standard_B2s"
+# }
 
-variable "enable_autoscaling" {
-  description = "Enable cluster autoscaler on node pools."
-  type        = bool
-  default     = false
-}
+# variable "enable_autoscaling" {
+#   description = "Enable cluster autoscaler on node pools."
+#   type        = bool
+#   default     = false
+# }
 
-variable "admin_group_object_ids" {
-  description = "Azure AD group object IDs granted cluster-admin access."
-  type        = list(string)
-  default     = []
-}
+# variable "admin_group_object_ids" {
+#   description = "Azure AD group object IDs granted cluster-admin access."
+#   type        = list(string)
+#   default     = []
+# }
 
 # --- Key Vault ---
 
@@ -125,3 +125,8 @@ variable "vm_name" {
   default     = "testvm"
 }
 
+variable "vm_size" {
+  description = "VM SKU for the VM."
+  type        = string
+  default     = "Standard_B2s"
+}

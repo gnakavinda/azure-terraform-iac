@@ -281,7 +281,7 @@ module "vm" {
   location            = azurerm_resource_group.dev.location
   resource_group_name = azurerm_resource_group.dev.name
   subnet_id           = module.vnet.subnet_ids["snet-vm"]
-  vm_size             = var.system_vm_size  # or a dedicated var.vm_size if you added one
+  vm_size             = var.vm_size  # or a dedicated var.vm_size if you added one
   admin_username      = var.vm_admin_username
   admin_password      = var.vm_admin_password
 
