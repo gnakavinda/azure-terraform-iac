@@ -164,6 +164,60 @@ module "vnet" {
         }
       ]
     }
+    "snet-vm" = {
+      cidr            = "10.0.2.0/24"
+      service_endpoints = []
+      nsg_rules = [
+          # Allow SSH inbound — only from your own IP, not "*"
+        {
+          name                       = "allow-ssh-inbound"
+          priority                   = 100
+          direction                  = "Inbound"
+          access                     = "Allow"
+          protocol                   = "Tcp"
+          source_port_range          = "*"
+          destination_port_range     = "22"
+          source_address_prefix      = var.admin_ip_address  # e.g. "203.0.113.5/32"
+          destination_address_prefix = "VirtualNetwork"
+        },
+        # Deny everything else inbound
+        {
+          name                       = "deny-all-inbound"
+          priority                   = 4096
+          direction                  = "Inbound"
+          access                     = "Deny"
+          protocol                   = "*"
+          source_port_range          = "*"
+          destination_port_range     = "*"
+          source_address_prefix      = "*"
+          destination_address_prefix = "*"
+        },
+        # Allow HTTPS outbound — package updates, Azure APIs
+        {
+          name                       = "allow-https-outbound"
+          priority                   = 100
+          direction                  = "Outbound"
+          access                     = "Allow"
+          protocol                   = "Tcp"
+          source_port_range          = "*"
+          destination_port_range     = "443"
+          source_address_prefix      = "VirtualNetwork"
+          destination_address_prefix = "*"
+        },
+        # Allow DNS outbound
+        {
+          name                       = "allow-dns-outbound"
+          priority                   = 200
+          direction                  = "Outbound"
+          access                     = "Allow"
+          protocol                   = "Udp"
+          source_port_range          = "*"
+          destination_port_range     = "53"
+          source_address_prefix      = "VirtualNetwork"
+          destination_address_prefix = "*"
+        }
+      ]
+    }
   }
 
   tags = local.tags
@@ -183,10 +237,7 @@ module "keyvault" {
   purge_protection_enabled   = false  # Disabled in dev for easy cleanup
 
   enable_rbac_authorization = true
-  network_default_action    = "Deny"
-
-  # Only allow traffic from the AKS subnet
-  allowed_subnet_ids = [module.vnet.subnet_ids["snet-aks"]]
+  network_default_action    = "Allow"
 
   tags = local.tags
 
@@ -196,28 +247,45 @@ module "keyvault" {
 
 # --- Module: AKS ---
 # Provisions the AKS cluster, wired into the VNet subnet above
-module "aks" {
-  source = "../../modules/aks"
+# module "aks" {
+#   source = "../../modules/aks"
 
-  cluster_name        = var.aks_cluster_name
+#   cluster_name        = var.aks_cluster_name
+#   location            = azurerm_resource_group.dev.location
+#   resource_group_name = azurerm_resource_group.dev.name
+#   environment         = var.environment
+#   kubernetes_version  = var.kubernetes_version
+
+#   # Wire the AKS subnet output from the VNet module directly in
+#   subnet_id = module.vnet.subnet_ids["snet-aks"]
+
+#   # Dev: single node, small VM, no autoscaling
+#   system_node_count  = var.system_node_count
+#   system_vm_size     = var.system_vm_size
+#   enable_autoscaling = var.enable_autoscaling
+
+#   enable_azure_rbac      = true
+#   admin_group_object_ids = var.admin_group_object_ids
+
+#   tags = local.tags
+
+#   depends_on = [module.vnet]
+# }
+
+# --- Module: VM ---
+# Provisions a single VM for testing, wired into the VNet subnet above
+module "vm" {
+  source = "../../modules/vm"
+
+  vm_name             = var.vm_name
   location            = azurerm_resource_group.dev.location
   resource_group_name = azurerm_resource_group.dev.name
-  environment         = var.environment
-  kubernetes_version  = var.kubernetes_version
-
-  # Wire the AKS subnet output from the VNet module directly in
-  subnet_id = module.vnet.subnet_ids["snet-aks"]
-
-  # Dev: single node, small VM, no autoscaling
-  system_node_count  = var.system_node_count
-  system_vm_size     = var.system_vm_size
-  enable_autoscaling = var.enable_autoscaling
-
-  enable_azure_rbac      = true
-  admin_group_object_ids = var.admin_group_object_ids
+  subnet_id           = module.vnet.subnet_ids["snet-vm"]
+  vm_size             = var.system_vm_size  # or a dedicated var.vm_size if you added one
+  admin_username      = var.vm_admin_username
+  admin_password      = var.vm_admin_password
 
   tags = local.tags
 
   depends_on = [module.vnet]
 }
-# triggered

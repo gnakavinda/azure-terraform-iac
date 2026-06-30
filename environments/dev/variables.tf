@@ -46,6 +46,12 @@ variable "vnet_address_space" {
   default     = ["10.0.0.0/16"]
 }
 
+variable "admin_ip_address" {
+  description = "Public IP address of the admin workstation for NSG rules."
+  type        = string
+  default     = "112.134.161.192"
+}
+
 # --- AKS ---
 
 variable "kubernetes_version" {
@@ -99,7 +105,23 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-# trigger
-# trigger
-# updated
-# updated
+
+# --- VM ---
+variable "vm_admin_username" {
+  description = "Admin username for the VM."
+  type        = string
+  default     = "azureuser"
+}
+
+variable "vm_admin_password" {
+  description = "Admin password for the VM. Supply via TF_VAR_vm_admin_password env var, not tfvars."
+  type        = string
+  sensitive   = true
+}
+
+variable "vm_name" {
+  description = "Name of the VM."
+  type        = string
+  default     = "testvm"
+}
+
