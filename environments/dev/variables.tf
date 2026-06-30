@@ -23,10 +23,10 @@ variable "vnet_name" {
   type        = string
 }
 
-variable "aks_cluster_name" {
-  description = "Name of the AKS cluster."
-  type        = string
-}
+# variable "aks_cluster_name" {
+#   description = "Name of the AKS cluster."
+#   type        = string
+# }
 
 variable "keyvault_name" {
   description = "Globally unique name for the Key Vault (3-24 alphanumeric and hyphens)."
@@ -46,37 +46,43 @@ variable "vnet_address_space" {
   default     = ["10.0.0.0/16"]
 }
 
+variable "admin_ip_address" {
+  description = "Public IP address of the admin workstation for NSG rules."
+  type        = string
+  default     = "112.134.161.192"
+}
+
 # --- AKS ---
 
-variable "kubernetes_version" {
-  description = "Kubernetes version for the AKS cluster."
-  type        = string
-  default     = "1.30"
-}
+# variable "kubernetes_version" {
+#   description = "Kubernetes version for the AKS cluster."
+#   type        = string
+#   default     = "1.30"
+# }
 
-variable "system_node_count" {
-  description = "Number of nodes in the system node pool."
-  type        = number
-  default     = 1
-}
+# variable "system_node_count" {
+#   description = "Number of nodes in the system node pool."
+#   type        = number
+#   default     = 1
+# }
 
-variable "system_vm_size" {
-  description = "VM SKU for system pool nodes."
-  type        = string
-  default     = "Standard_B2s"
-}
+# variable "system_vm_size" {
+#   description = "VM SKU for system pool nodes."
+#   type        = string
+#   default     = "Standard_B2s"
+# }
 
-variable "enable_autoscaling" {
-  description = "Enable cluster autoscaler on node pools."
-  type        = bool
-  default     = false
-}
+# variable "enable_autoscaling" {
+#   description = "Enable cluster autoscaler on node pools."
+#   type        = bool
+#   default     = false
+# }
 
-variable "admin_group_object_ids" {
-  description = "Azure AD group object IDs granted cluster-admin access."
-  type        = list(string)
-  default     = []
-}
+# variable "admin_group_object_ids" {
+#   description = "Azure AD group object IDs granted cluster-admin access."
+#   type        = list(string)
+#   default     = []
+# }
 
 # --- Key Vault ---
 
@@ -99,7 +105,28 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-# trigger
-# trigger
-# updated
-# updated
+
+# --- VM ---
+variable "vm_admin_username" {
+  description = "Admin username for the VM."
+  type        = string
+  default     = "azureuser"
+}
+
+variable "vm_admin_password" {
+  description = "Admin password for the VM. Supply via TF_VAR_vm_admin_password env var, not tfvars."
+  type        = string
+  sensitive   = true
+}
+
+variable "vm_name" {
+  description = "Name of the VM."
+  type        = string
+  default     = "testvm"
+}
+
+variable "vm_size" {
+  description = "VM SKU for the VM."
+  type        = string
+  default     = "Standard_B2s"
+}

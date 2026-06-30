@@ -25,31 +25,31 @@ output "subnet_ids" {
 
 # --- AKS ---
 
-output "aks_cluster_name" {
-  description = "Name of the AKS cluster. Use with: az aks get-credentials --name <value> --resource-group <rg>"
-  value       = module.aks.cluster_name
-}
+# output "aks_cluster_name" {
+#   description = "Name of the AKS cluster. Use with: az aks get-credentials --name <value> --resource-group <rg>"
+#   value       = module.aks.cluster_name
+# }
 
-output "aks_cluster_id" {
-  description = "Resource ID of the AKS cluster."
-  value       = module.aks.cluster_id
-}
+# output "aks_cluster_id" {
+#   description = "Resource ID of the AKS cluster."
+#   value       = module.aks.cluster_id
+# }
 
-output "aks_node_resource_group" {
-  description = "Auto-generated resource group where AKS puts node VMs, disks, and NICs."
-  value       = module.aks.node_resource_group
-}
+# output "aks_node_resource_group" {
+#   description = "Auto-generated resource group where AKS puts node VMs, disks, and NICs."
+#   value       = module.aks.node_resource_group
+# }
 
-output "aks_kube_config" {
-  description = "Kubeconfig to connect kubectl to the cluster. Marked sensitive — use: terraform output -raw aks_kube_config"
-  value       = module.aks.kube_config
-  sensitive   = true
-}
+# output "aks_kube_config" {
+#   description = "Kubeconfig to connect kubectl to the cluster. Marked sensitive — use: terraform output -raw aks_kube_config"
+#   value       = module.aks.kube_config
+#   sensitive   = true
+# }
 
-output "aks_identity_principal_id" {
-  description = "Principal ID of the AKS managed identity. Used for role assignments (e.g. ACR pull, Key Vault access)."
-  value       = module.aks.identity_principal_id
-}
+# output "aks_identity_principal_id" {
+#   description = "Principal ID of the AKS managed identity. Used for role assignments (e.g. ACR pull, Key Vault access)."
+#   value       = module.aks.identity_principal_id
+# }
 
 # --- Key Vault ---
 

@@ -18,12 +18,12 @@ resource_group_name = "rg-dev-eastus"
 vnet_name          = "vnet-dev-eastus"
 vnet_address_space = ["10.0.0.0/16"]
 
-# --- AKS ---
-aks_cluster_name   = "aks-dev-eastus"
-kubernetes_version = "1.35.5"
-system_node_count  = 1 # Single node is fine for dev
-system_vm_size     = "Standard_D2s_v3"
-enable_autoscaling = false
+# # --- AKS ---
+# aks_cluster_name   = "aks-dev-eastus"
+# kubernetes_version = "1.35.5"
+# system_node_count  = 1 # Single node is fine for dev
+# system_vm_size     = "Standard_D2s_v3"
+# enable_autoscaling = false
 
 # --- Key Vault ---
 keyvault_name              = "kv-dev-1c6fbc4d-001"
