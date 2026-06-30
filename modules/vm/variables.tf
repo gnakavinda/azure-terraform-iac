@@ -21,9 +21,9 @@ variable "subnet_id" {
 }
 
 variable "vm_size" {
-  description = "VM SKU, e.g. Standard_DS1_v2."
+  description = "VM SKU, e.g. Standard_D2s_v3."
   type        = string
-  default     = "Standard_DS1_v2"
+  default     = "Standard_D2s_v3"
 }
 
 variable "admin_username" {
