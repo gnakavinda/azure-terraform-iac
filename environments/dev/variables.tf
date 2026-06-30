@@ -128,5 +128,5 @@ variable "vm_name" {
 variable "vm_size" {
   description = "VM SKU for the VM."
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_D2s_v3"
 }
