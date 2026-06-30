@@ -2,10 +2,10 @@
 
 output "vm_id" {
   description = "Resource ID of the Virtual Machine."
-  value       = azurerm_virtual_machine.this.id
+  value       = azurerm_virtual_machine.main.id
 }
 
 output "vm_name" {
   description = "Name of the Virtual Machine."
-  value       = azurerm_virtual_machine.this.name
+  value       = azurerm_virtual_machine.main.name
 }
